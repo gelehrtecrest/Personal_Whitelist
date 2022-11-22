@@ -1,17 +1,15 @@
 {
   "update_url": "https://clients2.google.com/service/update2/crx",
-  "name": "Personal Blocklist(not by Google)",
-  "version": "1.0.10",
-  "description": "Block Website from Google search results",
-  "manifest_version": 2,
+  "name": "Personal Whitelist(not by Google)",
+  "version": "1.0.0",
+  "description": "White Website from Google search results",
+  "manifest_version": 3,
   "default_locale": "en",
   "background": {
-    "scripts": [
-      "src/js/common.js"
-    ]
+    "service_worker": "src/js/common.js"
   },
-  "browser_action": {
-    "default_title": "Personal Blocklist(not by Google)",
+  "action": {
+    "default_title": "Personal Whitelist(not by Google)",
     "default_popup": "src/manager.html"
   },
   "icons": {
@@ -20,7 +18,8 @@
     "128": "images/icon.png"
   },
   "permissions": [
-    "tabs"
+    "tabs",
+    "storage"
   ],
   "content_scripts": [
     {

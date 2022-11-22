@@ -1,6 +1,6 @@
-blocklist.manager = {};
+whitelist.manager = {};
 
-blocklist.manager.handleDeleteBlocklistResponse = function (response) {
+whitelist.manager.handleDeleteWhitelistResponse = function (response) {
   chrome.tabs.query({
     active: true,
     currentWindow: true
@@ -11,7 +11,7 @@ blocklist.manager.handleDeleteBlocklistResponse = function (response) {
   })
 };
 
-blocklist.manager.handleAddBlocklistResponse = function (response) {
+whitelist.manager.handleAddWhitelistResponse = function (response) {
   chrome.tabs.query({
     active: true,
     currentWindow: true
@@ -22,12 +22,12 @@ blocklist.manager.handleAddBlocklistResponse = function (response) {
   })
 };
 
-blocklist.manager.createBlocklistPattern = function (pattern) {
+whitelist.manager.createWhitelistPattern = function (pattern) {
   let patRow = $(
     '<div style="max-width:350px;white-space: nowrap;display:flex;font-size:16px;margin:10px 0;padding:5px 0;border-bottom:1px solid #f2f2f2;"></div>');
   let patRowDeleteButton = $('<div class="isBlocked" style="margin-right: 15px;"></div>');
   let span = $('<span style="color:#1a0dab;margin:0;text-decoration:underline;cursor: pointer;">' +
-    chrome.i18n.getMessage('removeUrlFromBlocklist') +
+    chrome.i18n.getMessage('removeUrlFromWhitelist') +
     '</span>');
 
   patRowDeleteButton.append(span);
@@ -42,10 +42,10 @@ blocklist.manager.createBlocklistPattern = function (pattern) {
 
     if (btn.hasClass("isBlocked")) {
       chrome.runtime.sendMessage({
-        type: blocklist.common.DELETE_FROM_BLOCKLIST,
+        type: whitelist.common.DELETE_FROM_BLOCKLIST,
         pattern: pattern
       },
-        blocklist.manager.handleDeleteBlocklistResponse);
+        whitelist.manager.handleDeleteWhitelistResponse);
 
       btn.removeClass("isBlocked");
       span.html(
@@ -55,15 +55,15 @@ blocklist.manager.createBlocklistPattern = function (pattern) {
 
     } else {
       chrome.runtime.sendMessage({
-        type: blocklist.common.ADD_TO_BLOCKLIST,
+        type: whitelist.common.ADD_TO_BLOCKLIST,
         pattern: pattern
       },
-        blocklist.manager.handleAddBlocklistResponse);
+        whitelist.manager.handleAddWhitelistResponse);
 
       btn.addClass("isBlocked");
       span.html(
         '<span style="color:#1a0dab;margin:0;text-decoration:underline;cursor: pointer;">' +
-        chrome.i18n.getMessage('removeUrlFromBlocklist') +
+        chrome.i18n.getMessage('removeUrlFromWhitelist') +
         '</span>');
 
     }
@@ -71,39 +71,39 @@ blocklist.manager.createBlocklistPattern = function (pattern) {
   return patRow;
 }
 
-blocklist.manager.handleAddBlocklistResponse = function (response) {
+whitelist.manager.handleAddWhitelistResponse = function (response) {
   chrome.runtime.sendMessage({
-    type: blocklist.common.GET_BLOCKLIST
+    type: whitelist.common.GET_BLOCKLIST
   },
-    blocklist.manager.handleRefreshResponse);
+    whitelist.manager.handleRefreshResponse);
 }
 
-blocklist.manager.hideCurrentHost = function (pattern) {
+whitelist.manager.hideCurrentHost = function (pattern) {
   chrome.runtime.sendMessage({
-    'type': blocklist.common.ADD_TO_BLOCKLIST,
+    'type': whitelist.common.ADD_TO_BLOCKLIST,
     'pattern': pattern
   },
-    blocklist.manager.handleAddBlocklistResponse);
+    whitelist.manager.handleAddWhitelistResponse);
   $("#current-blocklink").html(
     '<p style="background:#dff0d8;color:#3c763d;padding:10px;">' +
     chrome.i18n.getMessage('alreadlyBlocked', pattern) +
     '</p>');
 }
 
-blocklist.manager.addBlockCurrentHostLink = function (blocklistPatterns) {
+whitelist.manager.addBlockCurrentHostLink = function (whitelistPatterns) {
   chrome.tabs.query({
     active: true,
     currentWindow: true
   }, function (tabs) {
-    let pattern = blocklist.common.getHostNameFromUrl(tabs[0].url);
+    let pattern = whitelist.common.getHostNameFromUrl(tabs[0].url);
 
-    if (blocklistPatterns.indexOf(pattern) == -1) {
+    if (whitelistPatterns.indexOf(pattern) == -1) {
       $('#current-blocklink').html(
         '<a href="#"> ' +
-        chrome.i18n.getMessage("addBlocklist", pattern) +
+        chrome.i18n.getMessage("addWhitelist", pattern) +
         '</a>');
       $('#current-blocklink').click(function () {
-        blocklist.manager.hideCurrentHost(pattern);
+        whitelist.manager.hideCurrentHost(pattern);
       });
     } else {
       $("#current-blocklink").html(
@@ -114,35 +114,39 @@ blocklist.manager.addBlockCurrentHostLink = function (blocklistPatterns) {
   });
 }
 
-blocklist.manager.handleRefreshResponse = function (response) {
+whitelist.manager.handleRefreshResponse = function (response) {
   $("#manager-pattern-list").show('fast');
 
-  let length = response.blocklist.length,
+  if(response == undefined || response.whitelist == undefined){
+    return;
+  }
+
+  let length = response.whitelist.length,
     listDiv = $('#manager-pattern-list');
   listDiv.empty();
 
-  if (response.blocklist != undefined && length > 0) {
-    blocklist.manager.addBlockCurrentHostLink(response.blocklist);
+  if (response.whitelist != undefined && length > 0) {
+    whitelist.manager.addBlockCurrentHostLink(response.whitelist);
 
     for (let i = 0; i < length; i++) {
-      var patRow = blocklist.manager.createBlocklistPattern(response.blocklist[i]);
+      var patRow = whitelist.manager.createWhitelistPattern(response.whitelist[i]);
       patRow.appendTo(listDiv);
     }
   } else {
-    blocklist.manager.addBlockCurrentHostLink([]);
+    whitelist.manager.addBlockCurrentHostLink([]);
   }
 
 
 }
 
-blocklist.manager.refresh = function () {
+whitelist.manager.refresh = function () {
   chrome.runtime.sendMessage({
-    type: blocklist.common.GET_BLOCKLIST
+    type: whitelist.common.GET_BLOCKLIST
   },
-    blocklist.manager.handleRefreshResponse);
+    whitelist.manager.handleRefreshResponse);
 };
 
-blocklist.manager.clickImportButton = function () {
+whitelist.manager.clickImportButton = function () {
 
   $("#io-head").text(chrome.i18n.getMessage('import'));
 
@@ -153,21 +157,21 @@ blocklist.manager.clickImportButton = function () {
   $("#io-text").val('');
   submitArea.on("click", function () {
     let pattern = $("#io-text").val();
-    blocklist.manager.handleImportButton(pattern);
+    whitelist.manager.handleImportButton(pattern);
   });
   $("#io-area").toggleClass('io-area-open');
 };
 
 
-blocklist.manager.handleImportButton = function (pattern) {
+whitelist.manager.handleImportButton = function (pattern) {
   chrome.runtime.sendMessage({
-    type: blocklist.common.ADD_LIST_TO_BLOCKLIST,
+    type: whitelist.common.ADD_LIST_TO_BLOCKLIST,
     pattern: pattern
   },
-    blocklist.manager.handleImportButtonResult);
+    whitelist.manager.handleImportButtonResult);
 }
 
-blocklist.manager.handleImportButtonResult = function (response) {
+whitelist.manager.handleImportButtonResult = function (response) {
   let showMessage = document.createElement('p');
   showMessage.style.cssText = 'background:#dff0d8;color:#3c763d;padding:10px;';
   showMessage.innerHTML = chrome.i18n.getMessage("completeAllBlocked");
@@ -178,27 +182,29 @@ blocklist.manager.handleImportButtonResult = function (response) {
     showMessage.style.visibility = "hidden";
   }, 1000);
 
-  blocklist.manager.refresh();
+  whitelist.manager.refresh();
 }
 
-blocklist.manager.clickExportButton = function () {
+whitelist.manager.clickExportButton = function () {
   chrome.runtime.sendMessage({
-    type: blocklist.common.GET_BLOCKLIST
+    type: whitelist.common.GET_BLOCKLIST
   },
-    blocklist.manager.handleExportButton);
+    whitelist.manager.handleExportButton);
 };
 
-blocklist.manager.handleExportButton = function (response) {
-
+whitelist.manager.handleExportButton = function (response) {
+  if(response == undefined){
+    return;
+  }
   $("#io-head").text(chrome.i18n.getMessage('export'));
 
   $('#io-desc').text(chrome.i18n.getMessage('exportDescription'));
   let ioText = $("#io-text");
-  let blocklist = response.blocklist;
+  let whitelist = response.whitelist;
 
   ioText.val('');
-  for (let i = 0, length = blocklist.length; i < length; i++) {
-    ioText.val(ioText.val() + blocklist[i] + "\n");
+  for (let i = 0, length = whitelist.length; i < length; i++) {
+    ioText.val(ioText.val() + whitelist[i] + "\n");
   }
 
   let submitArea = $("#submit-area");
@@ -212,73 +218,76 @@ blocklist.manager.handleExportButton = function (response) {
   $("#io-area").toggleClass('io-area-open');
 }
 
-blocklist.manager.localizeHeader = function () {
+whitelist.manager.localizeHeader = function () {
   let blockListHeader = $("#blockListHeader");
   blockListHeader.html(chrome.i18n.getMessage("blockListHeader"));
 }
 
-blocklist.manager.createIoButton = function () {
+whitelist.manager.createIoButton = function () {
 
   let export_btn = $("#export");
   export_btn.text(chrome.i18n.getMessage("export"));
   export_btn.on("click", function () {
-    blocklist.manager.clickExportButton();
+    whitelist.manager.clickExportButton();
   });
 
   let import_btn = $("#import");
   import_btn.text(chrome.i18n.getMessage("import"));
   import_btn.on("click", function () {
-    blocklist.manager.clickImportButton();
+    whitelist.manager.clickImportButton();
   });
 
 
 }
 
-blocklist.manager.createBackButton = function () {
+whitelist.manager.createBackButton = function () {
   $("#back").text(chrome.i18n.getMessage("back"))
   $("#back").on("click", function () {
     $("#io-area").toggleClass('io-area-open');
   });
 }
 
-blocklist.manager.createPwsOptionBox = function () {
+whitelist.manager.createPwsOptionBox = function () {
   chrome.runtime.sendMessage({
-    type: blocklist.common.GET_PWS_OPTION_VAL
+    type: whitelist.common.GET_PWS_OPTION_VAL
   },
-    blocklist.manager.handlePwsOptionBox);
+    whitelist.manager.handlePwsOptionBox);
 }
 
-blocklist.manager.handlePwsOptionBox = function (response) {
+whitelist.manager.handlePwsOptionBox = function (response) {
   $("#pws_option_mes").text(chrome.i18n.getMessage("pws_option_mes"));
 
+  if(response == undefined){
+    return;
+  }
   if (response.pws_option == "on")
     $("#pws_option").prop("checked", true);
 
   $("#pws_option").on("change", function () {
     let val = $("#pws_option").prop("checked") ? "on" : "off";
-    blocklist.manager.clickPwsOptionCheckbox(val);
+    whitelist.manager.clickPwsOptionCheckbox(val);
   });
 }
 
-blocklist.manager.clickPwsOptionCheckbox = function (val) {
+whitelist.manager.clickPwsOptionCheckbox = function (val) {
   chrome.runtime.sendMessage({
-    type: blocklist.common.CHANGE_PWS_OPTION_VAL,
+    type: whitelist.common.CHANGE_PWS_OPTION_VAL,
     val: val
   },
-    blocklist.manager.handlePwsOptionCheckboxResult);
+    whitelist.manager.handlePwsOptionCheckboxResult);
 };
 
-blocklist.manager.handlePwsOptionCheckboxResult = function (response) {
-  if (blocklist.common.pws_option_val)
-    blocklist.common.pws_option_val = response.pws_option;
+whitelist.manager.handlePwsOptionCheckboxResult = function (response) {
+  if (whitelist.common.pws_option_val)
+    whitelist.common.pws_option_val = response.pws_option;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-  blocklist.manager.refresh();
-  blocklist.manager.localizeHeader();
-  blocklist.manager.createIoButton();
-  blocklist.manager.createBackButton();
-  blocklist.manager.createPwsOptionBox();
+  whitelist.manager.refresh();
+  whitelist.manager.localizeHeader();
+  whitelist.manager.createIoButton();
+  whitelist.manager.createBackButton();
+  whitelist.manager.createPwsOptionBox();
 });
 
 

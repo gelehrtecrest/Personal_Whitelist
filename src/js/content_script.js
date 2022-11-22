@@ -1,37 +1,37 @@
 
-blocklist.searchpage = {};
+whitelist.searchpage = {};
 
-blocklist.searchpage.blocklist = [];
+whitelist.searchpage.whitelist = [];
 
-blocklist.searchpage.mutationObserver = null;
+whitelist.searchpage.mutationObserver = null;
 
-blocklist.searchpage.pws_option = "off";
+whitelist.searchpage.pws_option = "off";
 
-blocklist.searchpage.SEARCH_RESULT_DIV_BOX = "div.g";
+whitelist.searchpage.SEARCH_RESULT_DIV_BOX = "div.g";
 
-blocklist.searchpage.LINK_TAG = "div.yuRUbf > a";
+whitelist.searchpage.LINK_TAG = "div.yuRUbf > a";
 
-blocklist.searchpage.handleGetBlocklistResponse = function (response) {
-  if (response.blocklist != undefined) {
-    blocklist.searchpage.blocklist = response.blocklist;
+whitelist.searchpage.handleGetWhitelistResponse = function (response) {
+  if (response.whitelist != undefined) {
+    whitelist.searchpage.whitelist = response.whitelist;
   }
 };
 
-blocklist.searchpage.isHostLinkInBlocklist = function (hostlink) {
-  if (blocklist.searchpage.blocklist.indexOf(hostlink) != -1) {
+whitelist.searchpage.isHostLinkInWhitelist = function (hostlink) {
+  if (whitelist.searchpage.whitelist.indexOf(hostlink) != -1) {
     return true;
   } else {
     return false;
   }
 };
 
-blocklist.searchpage.handleAddBlocklistFromSerachResult = function (response) {
-  if (response.blocklist != undefined) {
-    blocklist.searchpage.blocklist = response.blocklist;
+whitelist.searchpage.handleAddWhitelistFromSerachResult = function (response) {
+  if (response.whitelist != undefined) {
+    whitelist.searchpage.whitelist = response.whitelist;
   }
 };
 
-blocklist.searchpage.showAddBlocklistMessage = function (pattern, section) {
+whitelist.searchpage.showAddWhitelistMessage = function (pattern, section) {
   let showMessage = document.createElement('div');
   showMessage.style.cssText = 'font-size:15px;background:#d8f7eb;padding:30px;margin:20px 0;box-sizing:border-box;';
   showMessage.innerHTML = chrome.i18n.getMessage("completeBlocked", pattern);
@@ -41,8 +41,8 @@ blocklist.searchpage.showAddBlocklistMessage = function (pattern, section) {
   cancelMessage.style.cssText = "cursor: pointer;margin-top:20px;font-size:16px;font-weight: 700; color: #0066c0;";
   cancelMessage.innerHTML = chrome.i18n.getMessage("cancleBlocked", pattern);
   cancelMessage.addEventListener("click", function (e) {
-    blocklist.searchpage.removePatternFromBlocklists(pattern);
-    blocklist.searchpage.removeBlockMessage(e.target.parentNode);
+    whitelist.searchpage.removePatternFromWhitelists(pattern);
+    whitelist.searchpage.removeBlockMessage(e.target.parentNode);
   }, false);
   showMessage.appendChild(cancelMessage);
   let parent = section.parentNode;
@@ -50,43 +50,43 @@ blocklist.searchpage.showAddBlocklistMessage = function (pattern, section) {
 
 }
 
-blocklist.searchpage.removeBlockMessage = function (elm) {
+whitelist.searchpage.removeBlockMessage = function (elm) {
   elm.parentNode.removeChild(elm);
 }
 
-blocklist.searchpage.removePatternFromBlocklists = function (pattern) {
+whitelist.searchpage.removePatternFromWhitelists = function (pattern) {
   chrome.runtime.sendMessage({
-    type: blocklist.common.DELETE_FROM_BLOCKLIST,
+    type: whitelist.common.DELETE_FROM_BLOCKLIST,
     pattern: pattern
-  }, blocklist.searchpage.handleRemoveBlocklistFromSerachResult);
+  }, whitelist.searchpage.handleRemoveWhitelistFromSerachResult);
 
-  blocklist.searchpage.displaySectionsFromSearchResult(pattern);
+  whitelist.searchpage.displaySectionsFromSearchResult(pattern);
 }
 
-blocklist.searchpage.handleRemoveBlocklistFromSerachResult = function (response) {
-  if (response.blocklist != undefined) {
-    blocklist.searchpage.blocklist = response.blocklist;
+whitelist.searchpage.handleRemoveWhitelistFromSerachResult = function (response) {
+  if (response.whitelist != undefined) {
+    whitelist.searchpage.whitelist = response.whitelist;
   }
 }
 
-blocklist.searchpage.displaySectionsFromSearchResult = function (pattern) {
-  blocklist.searchpage.toggleSections(pattern, "block");
+whitelist.searchpage.displaySectionsFromSearchResult = function (pattern) {
+  whitelist.searchpage.toggleSections(pattern, "block");
 }
 
 
-blocklist.searchpage.deleteSectionsFromSearchResult = function (pattern) {
-  blocklist.searchpage.toggleSections(pattern, "none");
+whitelist.searchpage.deleteSectionsFromSearchResult = function (pattern) {
+  whitelist.searchpage.toggleSections(pattern, "none");
 };
 
-blocklist.searchpage.toggleSections = function (pattern, display) {
-  var searchResultPatterns = document.querySelectorAll(blocklist.searchpage.SEARCH_RESULT_DIV_BOX);
+whitelist.searchpage.toggleSections = function (pattern, display) {
+  var searchResultPatterns = document.querySelectorAll(whitelist.searchpage.SEARCH_RESULT_DIV_BOX);
 
   for (let i = 0, length = searchResultPatterns.length; i < length; i++) {
     var searchResultPattern = searchResultPatterns[i];
-    var searchResultHostLink = searchResultPattern.querySelector(blocklist.searchpage.LINK_TAG);
+    var searchResultHostLink = searchResultPattern.querySelector(whitelist.searchpage.LINK_TAG);
     if (searchResultHostLink) {
       var HostLinkHref = searchResultHostLink.getAttribute("href");
-      var sectionLink = HostLinkHref.replace(blocklist.common.HOST_REGEX, '$2');
+      var sectionLink = HostLinkHref.replace(whitelist.common.HOST_REGEX, '$2');
       if (pattern === sectionLink) {
         searchResultPattern.style.display = display;
       }
@@ -94,91 +94,95 @@ blocklist.searchpage.toggleSections = function (pattern, display) {
   }
 }
 
-blocklist.searchpage.addBlocklistFromSearchResult = function (hostlink, searchresult) {
+whitelist.searchpage.addWhitelistFromSearchResult = function (hostlink, searchresult) {
   var pattern = hostlink;
   chrome.runtime.sendMessage({
-    type: blocklist.common.ADD_TO_BLOCKLIST,
+    type: whitelist.common.ADD_TO_BLOCKLIST,
     pattern: pattern
   },
-    blocklist.searchpage.handleAddBlocklistFromSerachResult);
-  blocklist.searchpage.deleteSectionsFromSearchResult(pattern);
-  blocklist.searchpage.showAddBlocklistMessage(pattern, searchresult);
+    whitelist.searchpage.handleAddWhitelistFromSerachResult);
+  whitelist.searchpage.deleteSectionsFromSearchResult(pattern);
+  whitelist.searchpage.showAddWhitelistMessage(pattern, searchresult);
 };
 
-blocklist.searchpage.insertAddBlockLinkInSearchResult = function (searchResult, hostlink) {
+whitelist.searchpage.insertAddBlockLinkInSearchResult = function (searchResult, hostlink) {
   var insertLink = document.createElement('p');
-  insertLink.innerHTML = chrome.i18n.getMessage("addBlocklist", hostlink);
+  insertLink.innerHTML = chrome.i18n.getMessage("addWhitelist", hostlink);
   insertLink.style.cssText =
     "color:#1a0dab;margin:0;text-decoration:underline;cursor: pointer;";
   searchResult.appendChild(insertLink);
 
   insertLink.addEventListener("click", function () {
-    blocklist.searchpage.addBlocklistFromSearchResult(hostlink, searchResult);
+    whitelist.searchpage.addWhitelistFromSearchResult(hostlink, searchResult);
   }, false);
 };
 
-blocklist.searchpage.isPwsFeatureUsed = function () {
-  if (blocklist.searchpage.pws_option == "off") return false;
+whitelist.searchpage.isPwsFeatureUsed = function () {
+  if (whitelist.searchpage.pws_option == "off") return false;
 
   const PWS_REGEX = /(&|[?])pws=0/;
   return PWS_REGEX.test(location.href);
 };
 
-blocklist.searchpage.modifySearchResults = function (parent_dom) {
+whitelist.searchpage.modifySearchResults = function (parent_dom) {
 
-  if (blocklist.searchpage.isPwsFeatureUsed()) return;
+  if (whitelist.searchpage.isPwsFeatureUsed()) return;
 
-  var searchResultPatterns = parent_dom.querySelectorAll(blocklist.searchpage.SEARCH_RESULT_DIV_BOX);
+  var searchResultPatterns = parent_dom.querySelectorAll(whitelist.searchpage.SEARCH_RESULT_DIV_BOX);
 
   for (let i = 0, length = searchResultPatterns.length; i < length; i++) {
     var searchResultPattern = searchResultPatterns[i];
-    var searchResultHostLink = searchResultPattern.querySelector(blocklist.searchpage.LINK_TAG);
+    var searchResultHostLink = searchResultPattern.querySelector(whitelist.searchpage.LINK_TAG);
     if (searchResultHostLink) {
       var HostLinkHref = searchResultHostLink.getAttribute("href");
-      var HostLinkPattern = blocklist.common.getHostNameFromUrl(HostLinkHref);
+      var HostLinkPattern = whitelist.common.getHostNameFromUrl(HostLinkHref);
 
-      if (blocklist.searchpage.isHostLinkInBlocklist(HostLinkPattern)) {
+      if (whitelist.searchpage.isHostLinkInWhitelist(HostLinkPattern)) {
         searchResultPattern.style.display = "none";
       } else {
-        blocklist.searchpage.insertAddBlockLinkInSearchResult(
+        whitelist.searchpage.insertAddBlockLinkInSearchResult(
           searchResultPattern, HostLinkPattern);
       }
     }
   }
 };
 
-blocklist.searchpage.refreshBlocklist = function () {
+whitelist.searchpage.refreshWhitelist = function () {
   chrome.runtime.sendMessage({
-    type: blocklist.common.GET_BLOCKLIST
+    type: whitelist.common.GET_BLOCKLIST
   },
-    blocklist.searchpage.handleGetBlocklistResponse);
+    whitelist.searchpage.handleGetWhitelistResponse);
 };
 
-blocklist.searchpage.getPwsOption = function () {
+whitelist.searchpage.getPwsOption = function () {
   chrome.runtime.sendMessage({
-    type: blocklist.common.GET_PWS_OPTION_VAL
+    type: whitelist.common.GET_PWS_OPTION_VAL
   },
-    blocklist.searchpage.handleGetPwsOptionResponse);
+    whitelist.searchpage.handleGetPwsOptionResponse);
 }
 
-blocklist.searchpage.handleGetPwsOptionResponse = function (response) {
-  blocklist.searchpage.pws_option = response.pws_option;
+whitelist.searchpage.handleGetPwsOptionResponse = function (response) {
+  whitelist.searchpage.pws_option = response.pws_option;
 }
 
-blocklist.searchpage.initMutationObserver = function () {
-  if (blocklist.searchpage.mutationObserver != null) return;
+whitelist.searchpage.initMutationObserver = function () {
+  if (whitelist.searchpage.mutationObserver != null) return;
 
-  blocklist.searchpage.mutationObserver = new MutationObserver(function (mutations) {
-    blocklist.searchpage.modifySearchResultsAdded(mutations);
+  whitelist.searchpage.mutationObserver = new MutationObserver(function (mutations) {
+    whitelist.searchpage.modifySearchResultsAdded(mutations);
   });
 
   const SEARCH_RESULTS_WRAP = "div#center_col";
   let target = document.querySelector(SEARCH_RESULTS_WRAP);
   let config = { childList: true, subtree: true };
-  blocklist.searchpage.mutationObserver.observe(target, config);
+  console.log(target);
+  if(!target){
+    return;
+  }
+  whitelist.searchpage.mutationObserver.observe(target, config);
 }
 
-blocklist.searchpage.modifySearchResultsAdded = function (mutations) {
+whitelist.searchpage.modifySearchResultsAdded = function (mutations) {
   for (let i = 0; i < mutations.length; i++) {
     let mutation = mutations[i];
     let nodes = mutation.addedNodes;
@@ -191,14 +195,14 @@ blocklist.searchpage.modifySearchResultsAdded = function (mutations) {
     let new_srp_div = div_tag.parentNode;
     if (!(/arc-srp_([0-9]+)/).test(new_srp_div.id)) continue;
 
-    blocklist.searchpage.modifySearchResults(new_srp_div);
+    whitelist.searchpage.modifySearchResults(new_srp_div);
   };
 }
 
-blocklist.searchpage.refreshBlocklist();
-blocklist.searchpage.getPwsOption();
+whitelist.searchpage.refreshWhitelist();
+whitelist.searchpage.getPwsOption();
 
 document.addEventListener("DOMContentLoaded", function () {
-  blocklist.searchpage.initMutationObserver();
-  blocklist.searchpage.modifySearchResults(document);
+  whitelist.searchpage.initMutationObserver();
+  whitelist.searchpage.modifySearchResults(document);
 }, false);
